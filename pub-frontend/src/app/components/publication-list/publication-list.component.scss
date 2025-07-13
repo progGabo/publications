@@ -1,0 +1,121 @@
+@import "primeicons/primeicons.css";
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+$font-primary: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+
+:host ::ng-deep .p-datatable table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* vždy skryť pretečenie a zalomiť text na ellipsis */
+:host ::ng-deep .p-datatable th,
+:host ::ng-deep .p-datatable td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+
+:host ::ng-deep .p-datatable th:nth-child(1),
+:host ::ng-deep .p-datatable td:nth-child(1) {
+  width: 20%;
+}
+
+:host ::ng-deep .p-datatable th:nth-child(2),
+:host ::ng-deep .p-datatable td:nth-child(2) {
+  width: 15%;
+}
+
+:host ::ng-deep .p-datatable th:nth-child(12),
+:host ::ng-deep .p-datatable td:nth-child(12) {
+  width: 9%;
+}
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1rem;
+  font-family: $font-primary;
+}
+
+h2{
+  margin-left: 2rem;
+  font-size:xx-large;
+}
+
+.toggle-container {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.redirect-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.5rem;
+  border:rgba(25, 118, 210, 0.1);
+  cursor: pointer;
+}
+
+:host ::ng-deep .p-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+:host ::ng-deep .p-toolbar-group-left,
+:host ::ng-deep .p-toolbar-group-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep .filter-panel {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  max-height: 12rem;
+  padding: 1.5rem 1rem;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+:host ::ng-deep .filter-panel.collapsed {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.table-container {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.detail-btn,
+.delete-btn {
+  font-size: 1rem;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.detail-btn:hover {
+  background: rgba(25, 118, 210, 0.1);
+}
+.delete-btn:hover {
+  background: rgba(211, 47, 47, 0.1);
+}
+
+p-dialog .p-dialog-content {
+  line-height: 1.5;
+}

@@ -1,0 +1,185 @@
+<p-card>
+  <ng-template pTemplate="header">
+    <h2>Zoznam publikácií</h2>
+  </ng-template>
+
+  <div class="toggle-container">
+    <button
+      pButton
+      type="button"
+      class="toggle-arrow p-button-text"
+      (click)="filtersVisible = !filtersVisible"
+    > 
+    <i [ngClass]="filtersVisible ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"></i>
+    </button>
+
+    <button
+      pButton
+      type="button"
+      icon="pi pi-plus"
+      label="Pridať"
+      class="redirect-button p-button-outlined"
+      [routerLink]="['/create']"
+    ></button>
+  </div>
+
+  <p-toolbar>
+    <div class="p-toolbar-group-left">
+      <div class="filter-panel" [ngClass]="{ collapsed: !filtersVisible }">
+        <span class="p-input-icon-left">
+          <i class="pi pi-search" style="margin-right: 0.7rem; color: #10b981;"></i>
+          <input
+            type="text"
+            pInputText
+            placeholder="Vyhľadaj"
+            [(ngModel)]="searchTitle"
+            (ngModelChange)="applyFilters()"
+          />
+        </span>
+        <p-select
+          [options]="categoryOptions"
+          optionLabel="label"
+          placeholder="Kategória"
+          appendTo="body"
+          [(ngModel)]="selectedCategory"
+          (onChange)="applyFilters()"
+        ></p-select>
+        <p-select
+          [options]="languageOptions"
+          optionLabel="label"
+          placeholder="Jazyk"
+          appendTo="body"
+          [(ngModel)]="selectedLanguage"
+          (onChange)="applyFilters()"
+        ></p-select>
+        <p-select
+          [options]="typeOptions"
+          optionLabel="label"
+          placeholder="Typ"
+          appendTo="body"
+          [(ngModel)]="selectedType"
+          (onChange)="applyFilters()"
+        ></p-select>
+        <p-select
+          [options]="publisherOptions"
+          optionLabel="label"
+          placeholder="Vydavateľ"
+          appendTo="body"
+          [(ngModel)]="selectedPublisher"
+          (onChange)="applyFilters()"
+        ></p-select>
+      </div>
+    </div>
+    <div class="p-toolbar-group-right" *ngIf="filtersVisible">
+      <button style="margin-right: 1rem;"
+        pButton
+        icon="pi pi-refresh"
+        class="p-button-text"
+        (click)="resetFilters()"
+      ></button>
+    </div>
+  </p-toolbar>
+
+  <div class="table-container">
+      <p-table
+        [value]="filteredPublications"
+        [loading]="loading"
+        [paginator]="true" 
+        [rows]="10"
+        stripedRows
+        [rowsPerPageOptions]="[5, 10, 20]"
+        sortMode="multiple"
+      >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="title">Názov <p-sortIcon field="title" /></th>
+          <th>Autori</th>
+          <th pSortableColumn="publicationDate">Dátum publikácie <p-sortIcon field="publicationDate" /></th>
+          <th>Vydavateľ</th>
+          <th>Kategória</th>
+          <th>Typ</th>
+          <th>Jazyk</th>
+          <th>ISBN/ISSN</th>
+          <th>Vydanie</th>
+          <th pSortableColumn="pageCount">Počet strán<p-sortIcon field="pageCount" /></th>
+          <th></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-publication>
+        <tr>
+          <td>{{ publication.title }}</td>
+          <td>{{ getAuthorNames(publication) }}</td>
+          <td>{{ publication.publicationDate | date:'yyyy-MM-dd' }}</td>
+          <td>{{ publication.publisher }}</td>
+          <td>{{ publication.category }}</td>
+          <td>{{ publication.type }}</td>
+          <td>{{ publication.language }}</td>
+          <td>{{ publication.isbnIssn }}</td>
+          <td>{{ publication.edition }}</td>
+          <td>{{ publication.pageCount }}</td>
+          <td>
+            <button
+              pButton
+              type="button"
+              icon="pi pi-eye"
+              class="detail-btn p-button-text"
+              (click)="showDetail(publication)"
+              pTooltip="Detail"
+            ></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+   <p-dialog
+    header="Detail publikácie"
+    [(visible)]="displayDialog"
+    [modal]="true"
+    [style]="{ width: '50vw' }"
+    (onHide)="closeDialog()"
+  >
+    <div *ngIf="selectedPub">
+      <h3>{{ selectedPub.title }}</h3>
+      <p><strong>Dátum:</strong> {{ selectedPub.publicationDate | date:'yyyy-MM-dd' }}</p>
+      <p><strong>ISBN/ISSN:</strong> {{ selectedPub.isbnIssn }}</p>
+      <p><strong>Edícia:</strong> {{ selectedPub.edition }}</p>
+      <p><strong>Počet strán:</strong> {{ selectedPub.pageCount }}</p>
+      <p><strong>Abstrakt:</strong> {{ selectedPub.abstractText }}</p>
+      <p><strong>Vydavateľ:</strong> {{ selectedPub.publisher }}</p>
+      <p><strong>Kategória:</strong> {{ selectedPub.category }}</p>
+      <p><strong>Typ:</strong> {{ selectedPub.type }}</p>
+      <p><strong>Jazyk:</strong> {{ selectedPub.language }}</p>
+
+      <p><strong>Autori:</strong></p>
+      <ul>
+        <li *ngFor="let author of selectedPub.authors | sortByOrder">
+          {{ author.firstName }} {{ author.lastName }} (poradie: {{ author.authorOrder }})
+        </li>
+      </ul>
+    </div>
+    <div class="dialog-actions" style="margin-top: 2rem; text-align: right;">
+      <button
+        pButton
+        label="Upraviť"
+        type="button"
+        icon="pi pi-pencil"
+        class="p-button-text"
+        (click)="editPublication(selectedPub!)"
+        pTooltip="Upraviť"
+      ></button>
+
+      <button
+        pButton
+        label="Zmazať"
+        icon="pi pi-trash"
+        class="p-button-outlined p-button-danger"
+        (click)="confirmDeletePublication(selectedPub!)"
+      ></button>
+    </div>
+  </p-dialog>
+</p-card>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>
