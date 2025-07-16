@@ -2,7 +2,6 @@ package org.publications.service;
 
 import org.publications.domain.Author;
 import org.publications.service.dto.AuthorDTO;
-import org.publications.service.dto.AuthorSpecificDTO;
 
 
 import java.util.List;
@@ -15,5 +14,5 @@ public interface AuthorService {
     Author update(Long id, Author author);
     void delete(Long id);
 
-    Optional<AuthorSpecificDTO> findByFirstNameAndLastName(String firstName, String lastName);
+    Optional<AuthorDTO> findByFirstNameAndLastName(String firstName, String lastName);
 }

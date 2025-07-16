@@ -1,74 +1,22 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { PublicationService } from '../../services/publication.service';
-import { TableModule } from 'primeng/table';
-import { CardModule } from 'primeng/card';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
-import { SortByOrderPipe } from '../../services/sort-by-order.pipe';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ToastModule } from 'primeng/toast';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { RouterModule, Router } from '@angular/router';
-import { Toolbar } from 'primeng/toolbar';
-import { Select } from "primeng/select";
-import { FormsModule } from '@angular/forms';
-import { TooltipModule } from 'primeng/tooltip';
-import { InputTextModule } from 'primeng/inputtext';
-
-
-export interface Page<T> {
-  content: T[];
-  totalElements: number;
-  number: number;
-  size: number;
-}
-
-interface AuthorInPublication {
-  firstName: string;
-  lastName: string;
-  authorOrder: number;
-}
-
-export interface Publication {
-  id: number;
-  title: string;
-  publicationDate: string;          
-  isbnIssn: string;
-  edition: string;
-  pageCount: number;
-  abstractText: string;
-  publisher: string;
-  category: string;
-  type: string;
-  language: string;
-  authors: AuthorInPublication[];   
-}
+import { Router } from '@angular/router';
+import { Publication } from '../../models/publication';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Option } from '../../models/option';
+import { PublicationFilter } from '../../models/publication-filter';
+import { Page } from '../../models/page';
+import { DropdownDataService } from '../../services/dropdown-data.service';
 
 @Component({
   selector: 'app-publications',
-  standalone: true,
-  imports: [
-    CommonModule,
-    TableModule,
-    CardModule,
-    ProgressSpinnerModule,
-    DialogModule,
-    ButtonModule,
-    SortByOrderPipe,
-    ConfirmDialogModule,
-    ToastModule,
-    RouterModule,
-    Toolbar,
-    Select,
-    FormsModule,
-    TooltipModule,
-    InputTextModule
-],
+  standalone: false,
   templateUrl: './publication-list.component.html',
   styleUrls: ['./publication-list.component.scss']
 })
+
 export class PublicationList implements OnInit {
   publications: Publication[] = [];
   loading = true;
@@ -76,33 +24,69 @@ export class PublicationList implements OnInit {
   selectedPub: Publication | null = null;
   displayDialog = false;
 
-  filteredPublications: Publication[] = [];
   filtersVisible = true;
-  categoryOptions: { label: string, value: string }[] = [];
-  languageOptions: { label: string, value: string }[] = [];
-  typeOptions: { label: string, value: string }[] = [];
-  publisherOptions: {label: string, value: string} [] = [];
+  categoryOptions: Option[] = [];
+  languageOptions: Option[] = [];
+  typeOptions: Option[] = [];
+  publisherOptions: Option [] = [];
 
   searchTitle: string = '';
-  selectedCategory: any = null;
-  selectedLanguage: any = null;
-  selectedType: any = null;
-  selectedPublisher: any = null;
+  selectedCategory: Option | null = null;
+  selectedLanguage: Option | null = null;
+  selectedType: Option | null = null;
+  selectedPublisher: Option | null = null;
+  
+  filterSubject = new Subject<PublicationFilter>();
+  sub!: Subscription;
 
   constructor(
     private publicationService: PublicationService,
     private cdRef: ChangeDetectorRef,
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private router: Router
+    private router: Router,
+    private dropdownService: DropdownDataService
   ) {}
 
   ngOnInit(): void {
-    this.loadPublications();
+    this.sub = this.filterSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+      switchMap(filter => {
+        this.loading = true;
+        return this.publicationService.search(filter);
+      })
+    ).subscribe({
+      next: (page: Page<Publication>) => {
+        this.publications = page.content;
+        this.loading = false;
+        this.cdRef.markForCheck();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdRef.markForCheck();
+      }
+    });
+
+    this.applyFilters();
+
+    this.loadDropdownData();
   }
 
-  selectIcon(): string{
-    return this.filtersVisible ? 'pi-arrow-up' : 'pi-arrow-down';
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  loadDropdownData(){
+    this.dropdownService.loadAll().subscribe({
+      next: opts => {
+        this.publisherOptions = opts.publishers;
+        this.categoryOptions  = opts.categories;
+        this.typeOptions      = opts.types;
+        this.languageOptions  = opts.languages;
+        this.loading = false;
+      }
+    });
   }
 
   confirmDeletePublication(pub: Publication): void {
@@ -111,30 +95,6 @@ export class PublicationList implements OnInit {
       header: 'Potvrdenie vymazania',
       icon: 'pi pi-exclamation-triangle',
       accept: () => this.deletePublication(pub)
-    });
-  }
-
-  loadPublications(): void {
-    this.loading = true;
-    this.publicationService.getAll().subscribe({
-      next: (page) => {
-        this.publications = page.content;
-        this.filteredPublications = [...this.publications];
-
-        this.categoryOptions = this.getDistinctOptions('category');
-        this.languageOptions = this.getDistinctOptions('language');
-        this.typeOptions = this.getDistinctOptions('type');
-        this.publisherOptions = this.getDistinctOptions('publisher');
-
-
-        this.loading = false;
-        this.cdRef.detectChanges();
-      },
-      error: (err) => {
-        console.error('Failed to fetch publications:', err);
-        this.loading = false;
-        this.cdRef.detectChanges();
-      }
     });
   }
 
@@ -163,7 +123,7 @@ export class PublicationList implements OnInit {
       next: () => {
         this.publications = this.publications.filter(p => p.id !== pub.id);
         this.messageService.add({ severity: 'success', summary: 'Vymazané', detail: `Publikácia '${pub.title}' bola vymazaná.` });
-        this.loadPublications();
+        this.applyFilters();
         this.closeDialog();
       },
       error: (err) => {
@@ -173,48 +133,24 @@ export class PublicationList implements OnInit {
     });
   }
 
-  getDistinctOptions(field: keyof Publication): { label: string; value: string }[] {
-    const uniqueValues = Array.from(
-      new Set(
-        this.publications
-          .map(p => p[field])
-          .filter((val): val is string | number => val !== null && val !== undefined && typeof val !== 'object')
-      )
-    );
+  applyFilters(): void {
+    const filter: PublicationFilter = {
+      searchTerm: this.searchTitle.trim() || undefined,
+      publisher: this.selectedPublisher?.name,
+      category: this.selectedCategory?.name,
+      type: this.selectedType?.name,
+      language: this.selectedLanguage?.name,
+    };
 
-    return uniqueValues.map(value => ({
-      label: String(value),
-      value: String(value)
-    }));
-  } 
-
-  applyFilters() {
-    const term = this.searchTitle.trim().toLowerCase();
-
-    this.filteredPublications = this.publications.filter(pub => {
-      const matchesTitle = !term || pub.title.toLowerCase().includes(term);
-
-      const matchesAuthor = !term || pub.authors.some(a => {
-        const fullName = `${a.firstName} ${a.lastName}`.toLowerCase();
-        return fullName.includes(term);
-      });
-
-      const matchesText = matchesTitle || matchesAuthor;
-
-      const matchesCategory = !this.selectedCategory || pub.category === this.selectedCategory.value;
-      const matchesLanguage = !this.selectedLanguage || pub.language === this.selectedLanguage.value;
-      const matchesType = !this.selectedType || pub.type === this.selectedType.value;
-      const matchesPublisher = !this.selectedPublisher || pub.publisher === this.selectedPublisher.value;
-
-      return matchesText && matchesCategory && matchesLanguage && matchesType && matchesPublisher;
-    });
+    this.filterSubject.next(filter);
   }
+
   resetFilters() {
     this.searchTitle = '';
     this.selectedCategory = null;
     this.selectedLanguage = null;
     this.selectedType = null;
     this.selectedPublisher = null;
-    this.filteredPublications = [...this.publications];
+    this.applyFilters();
   }
 }

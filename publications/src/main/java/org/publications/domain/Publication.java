@@ -51,7 +51,12 @@ public class Publication {
     @JoinColumn(name = "language_id")
     private Language language;
 
-    @OneToMany(mappedBy = "publication", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PublicationAuthor> authors = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+            name = "publication_author",
+            joinColumns = @JoinColumn(name = "publication_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private List<Author> authors = new ArrayList<>();
 
 }

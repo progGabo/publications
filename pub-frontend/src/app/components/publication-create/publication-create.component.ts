@@ -1,63 +1,32 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule, FormControl, AbstractControl, ValidationErrors } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { DatePicker } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { ActivatedRoute } from '@angular/router';
-
-interface AuthorInPublication {
-  firstName: string;
-  lastName: string;
-  authorOrder: number;
-}
-
-export interface PublicationDTO {
-  id: number;
-  title: string;
-  publicationDate: string;
-  isbnIssn: string;
-  edition: string;
-  abstractText: string;
-  pageCount: number;
-  publisher: string;
-  category: string;
-  type: string;
-  language: string;
-  authors: AuthorInPublication[];
-}
+import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractControl, ValidationErrors } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Publication } from '../../models/publication';
+import { PublicationService } from '../../services/publication.service';
+import { EntityType } from '../../models/entity-type';
+import { Option } from '../../models/option';
+import { AuthorInPublication } from '../../models/author-in-publication';
+import { DropdownDataService } from '../../services/dropdown-data.service';
 
 @Component({
-  standalone: true,
+  standalone: false,
   selector: 'publication-create',
   templateUrl: './publication-create.component.html',
   styleUrls:['./publication-create.component.scss'],
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    HttpClientModule,
-    ButtonModule,
-    InputTextModule,
-    FloatLabelModule,
-    SelectModule,
-    DatePicker
-  ]
 })
+
 export class PublicationCreate implements OnInit {
-  @Input() publicationToEdit?: PublicationDTO;
+  @Input() publicationToEdit?: Publication;
   isEditMode: boolean = false;
+  public readonly EntityType = EntityType;
 
   publicationForm: FormGroup;
-  successMessage = '';
-  errorMessage = '';
 
-  publisher: any[] = [];
-  language: any[] = [];
-  type: any[] = [];
-  category: any[] = [];
+  publisher: Option[] = [];
+  language: Option[] = [];
+  type: Option[] = [];
+  category: Option[] = [];
 
   showNewInput: Record<string, boolean> = {
     publisher: false,
@@ -66,24 +35,35 @@ export class PublicationCreate implements OnInit {
     category: false
   };
 
+  showResultDialog = false;
+  dialogHeader = '';
+  isEditDialog = false;
+  showErrorDialog = false;
+  errorDialogHeader = '';
+  errorDialogMessage = '';
+
   newControls: Record<string, any> = {
     publisher: new FormControl('', Validators.required),
-    language: new FormGroup({
-      name: new FormControl('', Validators.required),
-      code: new FormControl('', Validators.required)
-    }),
+    language: new FormControl('', Validators.required),
     type: new FormControl('', Validators.required),
     category: new FormControl('', Validators.required)
   };
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private route: ActivatedRoute) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private cdRef: ChangeDetectorRef,
+    private route: ActivatedRoute, 
+    private publicationService: PublicationService,
+    private dropdownService: DropdownDataService
+  ) {
     this.publicationForm = this.fb.group({
       title: ['', Validators.required],
-      publicationDate: ['', Validators.required],
-      isbnIssn: ['', [Validators.required, this.isbnIssnValidator]],
-      edition: ['', Validators.required],
-      abstractText: [''],
-      pageCount: [null],
+      publicationDate: ['', Validators.required], 
+      isbnIssn: ['', [this.ValidatorIsbnIssn]], 
+      edition: [''],
+      abstractText: ['', Validators.required],
+      pageCount: [null, Validators.required],
       publisherId: [null, Validators.required],
       categoryId: [null, Validators.required],
       typeId: [null, Validators.required],
@@ -94,26 +74,31 @@ export class PublicationCreate implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    this.isEditMode = !!id;
+    if (id !== null) {
+      this.isEditMode = true;
+    } else {
+      this.isEditMode = false;
+      this.addAuthor();
+    }
 
-    this.loadDropdownData().then(() => {
-      if (this.isEditMode && id) {
-        this.http.get<PublicationDTO>(`http://localhost:8080/api/publications/${id}`)
-          .subscribe({
-            next: (data) =>{ this.patchForm(data), 
-              this.publicationToEdit = data;
-            },
-            error: (err) => console.error('Chyba pri načítaní publikácie:', err)
-          });
-      }
-    });
+    this.loadDropdownData()
+
+    if (this.isEditMode && id) {
+    this.publicationService.getById(Number(id))
+      .subscribe({
+        next: (data) => {
+          this.publicationToEdit = data;
+          this.patchForm(data);
+        }
+      });
+    }
   }
 
   get authorIds(): FormArray {
     return this.publicationForm.get('authorIds') as FormArray;
   }
 
-  addAuthorId() {
+  addAuthor() {
     this.authorIds.push(
       this.fb.group({
         firstName: ['', Validators.required],
@@ -122,17 +107,17 @@ export class PublicationCreate implements OnInit {
     );
   }
 
-  removeAuthorId(index: number) {
+  removeAuthor(index: number) {
     if (this.authorIds.length > 1) {
       this.authorIds.removeAt(index);
     }
   }
 
-  patchForm(pub: PublicationDTO) {
-    const selectedPublisher = this.publisher.find(p => p.label === pub.publisher);
-    const selectedLanguage = this.language.find(l => l.label === pub.language);
-    const selectedType = this.type.find(t => t.label === pub.type);
-    const selectedCategory = this.category.find(c => c.label === pub.category);
+  patchForm(pub: Publication) {
+    const selectedPublisher = this.publisher.find(p => p.name === pub.publisher);
+    const selectedLanguage = this.language.find(l => l.name === pub.language);
+    const selectedType = this.type.find(t => t.name === pub.type);
+    const selectedCategory = this.category.find(c => c.name === pub.category);
 
     this.publicationForm.patchValue({
       title: pub.title,
@@ -147,50 +132,40 @@ export class PublicationCreate implements OnInit {
       languageId: selectedLanguage ?? null
     });
 
-    const sortedAuthors = [...(pub.authors ?? [])].sort((a, b) => a.authorOrder - b.authorOrder);
+    const sortedAuthors = (pub.authors ?? []).sort((a, b) => a.authorOrder - b.authorOrder);
 
-    const authorArray = this.fb.array(
-      sortedAuthors.length > 0
-        ? sortedAuthors.map(a =>
-            this.fb.group({
-              firstName: [a.firstName, Validators.required],
-              lastName: [a.lastName, Validators.required]
-            })
-          )
-        : [this.fb.group({ firstName: ['', Validators.required], lastName: ['', Validators.required] })]
-    );
+    let authorArray: FormArray;
+
+    if (sortedAuthors.length > 0) {
+      const groups = sortedAuthors.map(a =>
+        this.fb.group({
+          firstName: [a.firstName, Validators.required],
+          lastName:  [a.lastName,  Validators.required]
+        })
+      );
+      authorArray = this.fb.array(groups);
+    } else {
+      authorArray = this.fb.array([
+        this.fb.group({
+          firstName: ['', Validators.required],
+          lastName:  ['', Validators.required]
+        })
+      ]);
+    }
 
     this.publicationForm.setControl('authorIds', authorArray);
   }
 
-
-
-  loadDropdownData(): Promise<void> {
-    return Promise.all([
-      this.http.get<any>('http://localhost:8080/publisher').toPromise(),
-      this.http.get<any>('http://localhost:8080/language').toPromise(),
-      this.http.get<any>('http://localhost:8080/type').toPromise(),
-      this.http.get<any>('http://localhost:8080/category').toPromise()
-    ]).then(([publisherRes, languageRes, typeRes, categoryRes]) => {
-      this.publisher = publisherRes._embedded.publishers.map((p: any) => ({
-        label: p.name,
-        value: this.extractId(p._links.self.href)
-      }));
-      this.language = languageRes._embedded.languages.map((l: any) => ({
-        label: l.name,
-        value: this.extractId(l._links.self.href)
-      }));
-      this.type = typeRes._embedded.publicationTypes.map((t: any) => ({
-        label: t.name,
-        value: this.extractId(t._links.self.href)
-      }));
-      this.category = categoryRes._embedded.categories.map((c: any) => ({
-        label: c.name,
-        value: this.extractId(c._links.self.href)
-      }));
+  loadDropdownData() {
+    this.dropdownService.loadAll().subscribe({
+      next: opts => {
+        this.publisher = opts.publishers;
+        this.category  = opts.categories;
+        this.type      = opts.types;
+        this.language  = opts.languages;
+      }
     });
   }
-
 
   extractId(url: string): number {
     return Number(url.split('/').pop());
@@ -200,97 +175,120 @@ export class PublicationCreate implements OnInit {
     this.showNewInput[entity] = !this.showNewInput[entity];
   }
 
-  addNewEntity(entity: 'publisher' | 'language' | 'type' | 'category') {
+  addNewEntity(entity: EntityType) {//rozdelit vytvaranie payloadu a request
     const control = this.newControls[entity];
-    let payload: any;
+    let payload: Option;
 
-    if (entity === 'language') {
-      if (control.invalid) return;
-      payload = {
-        name: control.get('name').value.trim(),
-        code: control.get('code').value.trim()
-      };
-    } else {
-      const name = control.value?.trim();
-      if (!name) return;
-      payload = { name };
-    }
+    const name = control.value?.trim();
+    if (!name) return;
+    payload = { name };
 
-    this.http.post<any>(`http://localhost:8080/${entity}`, payload).subscribe(res => {
-      const newOption = {
-        label: res.name,
-        value: this.extractId(res._links.self.href)
-      };
-      this[entity].push(newOption);
-      this.publicationForm.get(`${entity}Id`)?.setValue(newOption);
-      if (entity === 'language') control.reset();
-      else control.setValue('');
-      this.toggleNewInput(entity);
+    let create = this.dropdownService.saveEntity(entity, payload);
+    if (!create) return;
+
+    create.subscribe({
+      next: newOption => {
+        this[entity].push(newOption);
+        this.publicationForm.get(`${entity}Id`)!.setValue(newOption);
+        control.reset();
+        this.toggleNewInput(entity);
+      },
+      error: (err) => console.error(`Chyba pri vytváraní ${entity}:`, err)
     });
   }
 
-  isbnIssnValidator(control: AbstractControl): ValidationErrors | null {
+  ValidatorIsbnIssn(control: AbstractControl): ValidationErrors | null {
     const value = control.value?.toString().trim();
     if (!value) return null;
-    const isbn10 = /^(?:\d[\ |-]?){9}[\dX]$/;
-    const isbn13 = /^(?:\d[\ |-]?){13}$/;
+    const isbn = /^(?:ISBN(?:-13)?:?\ )?(?=[0-9]{13}$|(?=(?:[0-9]+[-\ ]){4})[-\ 0-9]{17}$)97[89][-\ ]?[0-9]{1,5}[-\ ]?[0-9]+[-\ ]?[0-9]+[-\ ]?[0-9]$/;
     const issn = /^\d{4}-\d{3}[\dX]$/;
-    return isbn10.test(value) || isbn13.test(value) || issn.test(value)
+    return isbn.test(value) || issn.test(value)
       ? null : { invalidIsbnIssn: true };
   }
 
-  onSubmit() {
-    if (this.publicationForm.invalid) return;
-    const raw = this.publicationForm.value;
+  onSubmit(): void {
+    if (this.publicationForm.invalid) {
+      return;
+    }
 
-    const authorRequests = raw.authorIds.map((author: any, index: number) => {
-      const firstName = author.firstName.trim();
-      const lastName = author.lastName.trim();
-      return this.http.get<any>(`http://localhost:8080/api/authors/search?firstName=${firstName}&lastName=${lastName}`)
-        .toPromise()
-        .then(existing => {
-          if (existing && existing.id) {
-            return { authorId: existing.id, authorOrder: index + 1 };
-          } else {
-            return this.http.post<any>('http://localhost:8080/api/authors', { firstName, lastName })
-              .toPromise()
-              .then(newAuthor => ({ authorId: newAuthor.id, authorOrder: index + 1 }));
-          }
-        });
-    });
+    const raw = this.publicationForm.value as {
+      title: string;
+      publicationDate: Date;
+      isbnIssn: string;
+      edition: string;
+      abstractText: string;
+      pageCount: number;
+      publisherId: { id: number };
+      categoryId:  { id: number };
+      typeId:      { id: number };
+      languageId:  { id: number };
+      authorIds: Array<{ id?: number; firstName: string; lastName: string }>;
+    };
 
-    Promise.all(authorRequests).then((authors: { authorId: number, authorOrder: number }[]) => {
-      const payload: any = {
-        id: this.publicationToEdit?.id ?? null,
-        title: raw.title,
-        publicationDate: raw.publicationDate,
-        isbnIssn: raw.isbnIssn,
-        edition: raw.edition,
-        abstractText: raw.abstractText || '',
-        pageCount: raw.pageCount || 0,
-        publisherId: Number(raw.publisherId?.value),
-        categoryId: Number(raw.categoryId?.value),
-        typeId: Number(raw.typeId?.value),
-        languageId: Number(raw.languageId?.value),
-        authors
-      };
+    const authors: AuthorInPublication[] = raw.authorIds.map((a, idx) => ({
+      id: a.id,
+      firstName: a.firstName.trim(),
+      lastName:  a.lastName.trim(),
+      authorOrder: idx + 1
+    }));
 
-      console.log("Payload: ", payload)
-      const req = this.publicationToEdit
-        ? this.http.put(`http://localhost:8080/api/publications/${this.publicationToEdit.id}`, payload)
-        : this.http.post(`http://localhost:8080/api/publications`, payload);
+    const payload: any = {
+      id:               this.publicationToEdit?.id ?? null,
+      title:            raw.title,
+      publicationDate:  raw.publicationDate,
+      isbnIssn:         raw.isbnIssn,
+      edition:          raw.edition,
+      abstractText:     raw.abstractText || '',
+      pageCount:        raw.pageCount || 0,
+      publisherId:      raw.publisherId.id,
+      categoryId:       raw.categoryId.id,
+      typeId:           raw.typeId.id,
+      languageId:       raw.languageId.id,
+      authors
+    };
 
-      req.subscribe({
-        next: () => {
-          this.successMessage = this.publicationToEdit ? 'Publikácia bola upravená!' : 'Publikácia bola vytvorená!';
-          this.errorMessage = '';
-        },
-        error: (err) => {
-          this.successMessage = '';
-          this.errorMessage = 'Nepodarilo sa uložiť publikáciu.';
-          console.error('Chyba pri odosielaní:', err);
-        }
-      });
-    });
+    this.publicationService.save(payload).subscribe({
+    next: () => {
+      this.isEditDialog = this.isEditMode;
+      this.dialogHeader = this.isEditMode
+        ? 'Publikácia upravená'
+        : 'Publikácia vytvorená';
+      this.showResultDialog = true;
+      this.cdRef.detectChanges();
+    },
+    error: (err: HttpErrorResponse) => {
+      let header = this.isEditMode
+        ? 'Chyba pri úprave'
+        : 'Chyba pri vytváraní';
+      let message = this.isEditMode
+        ? 'Nepodarilo sa upraviť publikáciu. Skúste to prosím neskôr.'
+        : 'Nepodarilo sa vytvoriť publikáciu. Skúste to prosím neskôr.';
+
+      if (err.status === 409 && err.error?.error === 'Duplicate ISBN') {
+        header = 'Duplicitné ISBN';
+        message = 'Zadané ISBN/ISSN už existuje.';
+      }
+
+      this.errorDialogHeader = header;
+      this.errorDialogMessage = message;
+      this.showErrorDialog = true;
+      this.cdRef.detectChanges();
+    }
+  });
+  }
+
+  goHome() {
+    this.showResultDialog = false;
+    this.router.navigate(['/']); 
+  }
+
+  addAnother() {
+    this.showResultDialog = false;
+    this.publicationForm.reset();
+    while (this.authorIds.length) {
+      this.authorIds.removeAt(0);
+    }
+    this.addAuthor();
+    this.isEditMode = false;
   }
 }

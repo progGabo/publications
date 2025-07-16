@@ -23,6 +23,7 @@ public class Author {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PublicationAuthor> publications = new ArrayList<>();
+    @ManyToMany(mappedBy = "authors")
+    private List<Publication> publications = new ArrayList<>();
+
 }

@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Page, Publication } from '../components/publication-list/publication-list.component';
-
+import { Page } from '../models/page';
+import { Publication } from '../models/publication';
+import { HttpParams } from '@angular/common/http';
+import { PublicationFilter } from '../models/publication-filter';
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class PublicationService {
   private apiUrl = 'http://localhost:8080/api/publications';
 
@@ -24,7 +27,23 @@ export class PublicationService {
     return this.http.get<Publication>(`${this.apiUrl}/${id}`);
   }
 
-  update(id: number, payload: any): Observable<Publication> {
-    return this.http.put<Publication>(`${this.apiUrl}/${id}`, payload);
+  save(payload: Publication): Observable<Publication> {
+    return payload.id == null ? this.http.post<Publication>(this.apiUrl, payload)
+              : this.http.put<Publication>(`${this.apiUrl}/${payload.id}`, payload);
   }
+
+  search(filter: PublicationFilter): Observable<Page<Publication>> {
+    let params = new HttpParams();
+    Object.entries(filter).forEach(([key, val]) => {
+      if (val != null) {
+        if (Array.isArray(val)) {
+          val.forEach(v => params = params.append(`${key}`, v));
+        } else {
+          params = params.set(key, val);
+        }
+      }
+    });
+    return this.http.get<Page<Publication>>(`${this.apiUrl}/filter`, { params });
+  }
+
 }

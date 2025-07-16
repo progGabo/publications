@@ -5,10 +5,7 @@ import org.publications.domain.Author;
 import org.publications.repository.AuthorRepository;
 import org.publications.service.AuthorService;
 import org.publications.service.dto.AuthorDTO;
-import org.publications.service.dto.AuthorSpecificDTO;
 import org.publications.service.mapper.AuthorMapper;
-//import org.publications.service.mapper.AuthorPublicationsMapper;
-import org.publications.service.mapper.AuthorSpecificMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +18,10 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorRepository authorRepository;
     private final AuthorMapper authorMapper;
-    //private final AuthorPublicationsMapper authorPublicationsMapper;
-    private final AuthorSpecificMapper authorSpecificMapper;
-    public AuthorServiceImpl(AuthorRepository authorRepository, AuthorMapper authorMapper, AuthorSpecificMapper authorSpecificMapper) {
+
+    public AuthorServiceImpl(AuthorRepository authorRepository, AuthorMapper authorMapper) {
         this.authorRepository = authorRepository;
         this.authorMapper = authorMapper;
-        //this.authorPublicationsMapper = authorPublicationsMapper;
-        this.authorSpecificMapper = authorSpecificMapper;
     }
 
 
@@ -66,7 +60,7 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    public Optional<AuthorSpecificDTO> findByFirstNameAndLastName(String firstName, String lastName) {
-        return authorRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastName).map(authorSpecificMapper::toDto);
+    public Optional<AuthorDTO> findByFirstNameAndLastName(String firstName, String lastName) {
+        return authorRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastName).map(authorMapper::toDto);
     }
 }

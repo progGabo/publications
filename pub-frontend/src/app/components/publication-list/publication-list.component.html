@@ -38,7 +38,7 @@
         </span>
         <p-select
           [options]="categoryOptions"
-          optionLabel="label"
+          optionLabel="name"
           placeholder="Kategória"
           appendTo="body"
           [(ngModel)]="selectedCategory"
@@ -46,7 +46,7 @@
         ></p-select>
         <p-select
           [options]="languageOptions"
-          optionLabel="label"
+          optionLabel="name"
           placeholder="Jazyk"
           appendTo="body"
           [(ngModel)]="selectedLanguage"
@@ -54,7 +54,7 @@
         ></p-select>
         <p-select
           [options]="typeOptions"
-          optionLabel="label"
+          optionLabel="name"
           placeholder="Typ"
           appendTo="body"
           [(ngModel)]="selectedType"
@@ -62,7 +62,7 @@
         ></p-select>
         <p-select
           [options]="publisherOptions"
-          optionLabel="label"
+          optionLabel="name"
           placeholder="Vydavateľ"
           appendTo="body"
           [(ngModel)]="selectedPublisher"
@@ -82,7 +82,7 @@
 
   <div class="table-container">
       <p-table
-        [value]="filteredPublications"
+        [value]="publications"
         [loading]="loading"
         [paginator]="true" 
         [rows]="10"
@@ -133,31 +133,33 @@
     </p-table>
   </div>
 
-   <p-dialog
-    header="Detail publikácie"
+   <p-dialog #headless
     [(visible)]="displayDialog"
     [modal]="true"
     [style]="{ width: '50vw' }"
     (onHide)="closeDialog()"
   >
-    <div *ngIf="selectedPub">
+    <div *ngIf="selectedPub" class="publication-detail">
       <h3>{{ selectedPub.title }}</h3>
-      <p><strong>Dátum:</strong> {{ selectedPub.publicationDate | date:'yyyy-MM-dd' }}</p>
-      <p><strong>ISBN/ISSN:</strong> {{ selectedPub.isbnIssn }}</p>
-      <p><strong>Edícia:</strong> {{ selectedPub.edition }}</p>
-      <p><strong>Počet strán:</strong> {{ selectedPub.pageCount }}</p>
-      <p><strong>Abstrakt:</strong> {{ selectedPub.abstractText }}</p>
-      <p><strong>Vydavateľ:</strong> {{ selectedPub.publisher }}</p>
-      <p><strong>Kategória:</strong> {{ selectedPub.category }}</p>
-      <p><strong>Typ:</strong> {{ selectedPub.type }}</p>
-      <p><strong>Jazyk:</strong> {{ selectedPub.language }}</p>
-
-      <p><strong>Autori:</strong></p>
-      <ul>
-        <li *ngFor="let author of selectedPub.authors | sortByOrder">
-          {{ author.firstName }} {{ author.lastName }} (poradie: {{ author.authorOrder }})
-        </li>
-      </ul>
+      <div class="authors">
+        <h2 *ngFor="let author of selectedPub.authors | sortByOrder">{{ author.firstName }} {{ author.lastName }}</h2>
+      </div>
+      <div class="group-top">
+        <p> {{ selectedPub.category }}</p>
+        <p> {{ selectedPub.type }}</p>
+        <p> {{ selectedPub.language }}</p>
+        <p> {{ selectedPub.publicationDate | date:'dd.MM.yyyy' }}</p>
+      </div>
+      <div class="group-bot">
+        <p><strong>Vydavateľ:</strong> {{ selectedPub.publisher }}</p>
+        <p><strong>ISBN/ISSN:</strong> {{ selectedPub.isbnIssn }}</p>
+        <p><strong>Edícia:</strong> {{ selectedPub.edition }}</p>
+        <p><strong>Počet strán:</strong> {{ selectedPub.pageCount }}</p>
+      </div>
+      <div class="abstract">
+        <strong>Abstrakt:</strong>
+        <p>{{ selectedPub.abstractText }}</p>
+      </div>
     </div>
     <div class="dialog-actions" style="margin-top: 2rem; text-align: right;">
       <button
@@ -165,7 +167,7 @@
         label="Upraviť"
         type="button"
         icon="pi pi-pencil"
-        class="p-button-text"
+        class="p-button-outlined"
         (click)="editPublication(selectedPub!)"
         pTooltip="Upraviť"
       ></button>
@@ -181,5 +183,9 @@
   </p-dialog>
 </p-card>
 
-<p-confirmDialog></p-confirmDialog>
+<p-confirmDialog   
+  class="confirmDialog"
+  [acceptLabel]="'Áno'" 
+  [rejectLabel]="'Nie'"
+></p-confirmDialog>
 <p-toast></p-toast>

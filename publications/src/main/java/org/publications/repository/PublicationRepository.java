@@ -5,19 +5,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 
 @Repository
-public interface PublicationRepository extends JpaRepository<Publication, Long> {
+public interface PublicationRepository extends JpaRepository<Publication, Long>,
+                                               JpaSpecificationExecutor<Publication> {
 
-    @Query("SELECT p FROM Publication p JOIN p.authors pa WHERE pa.author.id = :id")
-    Page<Publication> findPublicationsByAuthor(Pageable pageable, @Param("id") Long id);
+    @EntityGraph(attributePaths = {"authors", "publisher", "category", "language", "type"})
+    Page<Publication> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"authors", "authors.author", "publisher","language", "category", "type"})
-    @Query("SELECT p FROM Publication p")
-    Page<Publication> findAllWithAuthors(Pageable pageable);
+    boolean existsByIsbnIssn(String isbnIssn);
 }
