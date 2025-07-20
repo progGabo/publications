@@ -1,5 +1,68 @@
-/* You can add global styles to this file, and also import other style files */
 html, body {
   margin: 0;
   padding: 0;
+}
+
+.custom-button{
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  backdrop-filter: blur(8px);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.custom-button:hover{
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.custom-button-white{
+  background: #f3f9fb;
+  border: 1px solid #c4e4e9;
+  color: #2d6e71;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  position: relative;
+}
+
+.custom-button-white:hover{
+  background: #e6f3f5;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  color: #2d6e71;
+  transform: translateY(-2px);
+}
+
+.custom-button-danger{
+  background: #fdf3f3;
+  border: 1px solid #e7c7c7;
+  color: #a33434;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  position: relative;
+  box-shadow: none !important;  
+  outline: none !important;   
+}
+
+.custom-button-danger:hover{
+  background: #fbe1e1;
+  border-color: #d14848;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  color: #a33434;
+  transform: translateY(-2px);
+}
+
+input.ng-invalid.ng-touched,
+p-select.ng-invalid.ng-touched,
+p-datepicker.ng-invalid.ng-touched,
+:host ::ng-deep textarea.ng-invalid.ng-touched{
+  border: 1px solid rgb(255, 25, 0);
+  border-radius: 7px;
 }

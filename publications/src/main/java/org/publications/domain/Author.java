@@ -17,11 +17,17 @@ public class Author {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "nickname", nullable = false)
+    private String nickname;
+
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
     private String lastName;
+
+    @Column(name = "pass", nullable = false)
+    private String pass;
 
     @ManyToMany(mappedBy = "authors")
     private List<Publication> publications = new ArrayList<>();

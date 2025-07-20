@@ -14,11 +14,12 @@
     </button>
 
     <button
+      *ngIf="auth.isLoggedIn()"
       pButton
       type="button"
       icon="pi pi-plus"
       label="Pridať"
-      class="redirect-button p-button-outlined"
+      class="custom-button-white"
       [routerLink]="['/create']"
     ></button>
   </div>
@@ -133,11 +134,12 @@
     </p-table>
   </div>
 
-   <p-dialog #headless
+   <p-dialog
     [(visible)]="displayDialog"
     [modal]="true"
     [style]="{ width: '50vw' }"
     (onHide)="closeDialog()"
+    #headless
   >
     <div *ngIf="selectedPub" class="publication-detail">
       <h3>{{ selectedPub.title }}</h3>
@@ -151,13 +153,13 @@
         <p> {{ selectedPub.publicationDate | date:'dd.MM.yyyy' }}</p>
       </div>
       <div class="group-bot">
-        <p><strong>Vydavateľ:</strong> {{ selectedPub.publisher }}</p>
-        <p><strong>ISBN/ISSN:</strong> {{ selectedPub.isbnIssn }}</p>
-        <p><strong>Edícia:</strong> {{ selectedPub.edition }}</p>
-        <p><strong>Počet strán:</strong> {{ selectedPub.pageCount }}</p>
+        <p><strong>Vydavateľ</strong> {{ selectedPub.publisher }}</p>
+        <p><strong>ISBN/ISSN</strong> {{ selectedPub.isbnIssn }}</p>
+        <p *ngIf="selectedPub.edition"><strong>Edícia</strong> {{ selectedPub.edition }}</p>
+        <p><strong>Počet strán</strong> {{ selectedPub.pageCount }}</p>
       </div>
       <div class="abstract">
-        <strong>Abstrakt:</strong>
+        <strong>Abstrakt</strong>
         <p>{{ selectedPub.abstractText }}</p>
       </div>
     </div>
@@ -167,8 +169,9 @@
         label="Upraviť"
         type="button"
         icon="pi pi-pencil"
-        class="p-button-outlined"
+        class="custom-button-white"
         (click)="editPublication(selectedPub!)"
+        *ngIf="canModify(selectedPub!)"
         pTooltip="Upraviť"
       ></button>
 
@@ -176,7 +179,8 @@
         pButton
         label="Zmazať"
         icon="pi pi-trash"
-        class="p-button-outlined p-button-danger"
+        *ngIf="canModify(selectedPub!)"
+        class="custom-button-danger"
         (click)="confirmDeletePublication(selectedPub!)"
       ></button>
     </div>
@@ -184,8 +188,9 @@
 </p-card>
 
 <p-confirmDialog   
-  class="confirmDialog"
   [acceptLabel]="'Áno'" 
+  acceptIcon="pi pi-check"
   [rejectLabel]="'Nie'"
-></p-confirmDialog>
+  rejectIcon="pi pi-times"
+  ></p-confirmDialog>
 <p-toast></p-toast>

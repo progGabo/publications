@@ -1,5 +1,6 @@
 package org.publications.rest;
 
+import jakarta.validation.Valid;
 import org.publications.service.TypeService;
 import org.publications.service.dto.TypeDTO;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ public class TypeController {
     }
 
     @PostMapping
-    public ResponseEntity<TypeDTO> createType(@RequestBody TypeDTO typeRequest) {
+    public ResponseEntity<TypeDTO> createType(@Valid @RequestBody TypeDTO typeRequest) {
         log.info("REST request to save Type : {}", typeRequest);
         TypeDTO typeDTO = typeService.save(typeRequest);
         return ResponseEntity.ok(typeDTO);

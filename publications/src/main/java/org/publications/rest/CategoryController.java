@@ -1,5 +1,6 @@
 package org.publications.rest;
 
+import jakarta.validation.Valid;
 import org.publications.service.CategoryService;
 import org.publications.service.dto.CategoryDTO;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryRequest) {
+    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryRequest) {
         log.info("REST request to save Category : {}", categoryRequest);
         CategoryDTO categoryDTO = categoryService.save(categoryRequest);
         return ResponseEntity.ok(categoryDTO);

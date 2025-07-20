@@ -9,12 +9,13 @@ import { Option } from '../../models/option';
 import { PublicationFilter } from '../../models/publication-filter';
 import { Page } from '../../models/page';
 import { DropdownDataService } from '../../services/dropdown-data.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-publications',
   standalone: false,
   templateUrl: './publication-list.component.html',
-  styleUrls: ['./publication-list.component.scss']
+  styleUrls: ['./publication-list.component.scss', '../../../styles.scss']
 })
 
 export class PublicationList implements OnInit {
@@ -41,16 +42,17 @@ export class PublicationList implements OnInit {
 
   constructor(
     private publicationService: PublicationService,
-    private cdRef: ChangeDetectorRef,
+    private cdRef: ChangeDetectorRef,   
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private router: Router,
-    private dropdownService: DropdownDataService
+    private dropdownService: DropdownDataService,
+    public auth: AuthService
   ) {}
 
   ngOnInit(): void {
     this.sub = this.filterSubject.pipe(
-      debounceTime(300),
+      debounceTime(250),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       switchMap(filter => {
         this.loading = true;
@@ -76,7 +78,7 @@ export class PublicationList implements OnInit {
   ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
-
+  
   loadDropdownData(){
     this.dropdownService.loadAll().subscribe({
       next: opts => {
@@ -87,6 +89,7 @@ export class PublicationList implements OnInit {
         this.loading = false;
       }
     });
+    this.cdRef.markForCheck();
   }
 
   confirmDeletePublication(pub: Publication): void {
@@ -105,8 +108,15 @@ export class PublicationList implements OnInit {
   }
 
   showDetail(pub: Publication): void {
-    this.selectedPub = pub; 
-    this.displayDialog = true;
+     this.publicationService.getById(pub.id).subscribe({
+    next: (data: Publication) => {
+      this.selectedPub = data;
+      this.displayDialog = true;
+      this.cdRef.detectChanges();
+    },
+    error: (err) => {
+    }
+  });
   }
 
   editPublication(pub: Publication): void {
@@ -116,6 +126,14 @@ export class PublicationList implements OnInit {
   closeDialog(): void {
     this.displayDialog = false;
     this.selectedPub = null;
+  }
+
+  canModify(pub: Publication | null): boolean {
+    const userId = this.auth.currentUserId;
+    if (!userId || !pub?.authors) {
+      return false;
+    }
+    return pub.authors.some(a => a.id === userId);
   }
 
   deletePublication(pub: Publication): void {

@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+$font-primary: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+
+:host{
+  font-family: $font-primary;
+}
+
+::ng-deep .p-dialog .p-dialog-content {
+  padding: 1.5rem 1rem 2rem !important;
+}
+
+::ng-deep .p-dialog .p-dialog-content .p-field {
+  margin-bottom: 1.25rem;
+}
+
+::ng-deep .p-dialog .p-dialog-content input.p-inputtext {
+  margin-bottom: 0.5rem;
+}
+
+::ng-deep .p-dialog .p-dialog-content button.p-button {
+  margin-top: 1.5rem;
+  align-self: flex-end;
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-right: 1rem;
+
+  span{
+    color: white;
+    font-size: 1rem;
+  }
+}
+
+.header-button {
+  background: linear-gradient(135deg, #328E6E, #67AE6E);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.header-button:hover {
+  background: linear-gradient(135deg, #2b9d8c, #60bd70);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}

@@ -1,5 +1,6 @@
 package org.publications.rest;
 
+import jakarta.validation.Valid;
 import org.publications.service.PublisherService;
 import org.publications.service.dto.PublisherDTO;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ public class PublisherController {
     }
 
     @PostMapping
-    public ResponseEntity<PublisherDTO> createPublisher(@RequestBody PublisherDTO publisherRequest) {
+    public ResponseEntity<PublisherDTO> createPublisher(@Valid @RequestBody PublisherDTO publisherRequest) {
         log.info("REST request to save Publisher : {}", publisherRequest);
         PublisherDTO publisherDTO = publisherService.save(publisherRequest);
         return ResponseEntity.ok(publisherDTO);

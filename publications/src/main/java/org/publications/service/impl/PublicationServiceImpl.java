@@ -1,5 +1,6 @@
 package org.publications.service.impl;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.publications.domain.Author;
 import org.publications.domain.Publication;
 import org.publications.exception.DuplicateIsbnException;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,6 +95,16 @@ public class PublicationServiceImpl implements PublicationService {
         Publication saved = publicationRepository.save(publication);
 
         return publicationSpecificMapper.toDto(saved);
+    }
+
+    @Override
+    public boolean isOwner(Long pubId, Authentication auth) {
+        String nickname = auth.getName();
+        Publication pub = publicationRepository.findById(pubId)
+                .orElseThrow(() -> new EntityNotFoundException("Publication not found: " + pubId));
+        return pub.getAuthors()
+                .stream()
+                .anyMatch(a -> a.getNickname().equals(nickname));
     }
 
     @Override

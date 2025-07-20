@@ -57,13 +57,14 @@ public class PublicationSpecification {
             String pattern = "%" + term.toLowerCase() + "%";
             Predicate titleLike = cb.like(cb.lower(root.get("title")), pattern);
 
-            // priama väzba na Author
+            Predicate isbnLike = cb.like(cb.lower(root.get("isbnIssn")), pattern);
+
             Join<Publication, Author> authorJoin = root.join("authors", JoinType.LEFT);
             Predicate firstNameLike = cb.like(cb.lower(authorJoin.get("firstName")), pattern);
             Predicate lastNameLike  = cb.like(cb.lower(authorJoin.get("lastName")),  pattern);
             Predicate authorLike    = cb.or(firstNameLike, lastNameLike);
 
-            return cb.or(titleLike, authorLike);
+            return cb.or(titleLike, isbnLike, authorLike);
         };
     }
 

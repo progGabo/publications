@@ -12,7 +12,10 @@ $font-primary: 'Lato', 'Helvetica Neue', Arial, sans-serif;
 :host ::ng-deep .p-datatable td {
   overflow: hidden;
   text-overflow: ellipsis;
+}
 
+:host ::ng-deep .p-datatable-scrollable-wrapper {
+  overflow: scroll !important;
 }
 
 :host ::ng-deep .p-datatable th:nth-child(1),
@@ -33,7 +36,7 @@ $font-primary: 'Lato', 'Helvetica Neue', Arial, sans-serif;
 :host {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  //height: 100vh;
   padding: 1rem;
   font-family: $font-primary;
 }
@@ -99,7 +102,7 @@ h2{
 
 .table-container {
   flex: 1 1 auto;
-  overflow: auto;
+  overflow: visible;
 }
 
 .detail-btn,
@@ -116,95 +119,6 @@ h2{
   background: rgba(211, 47, 47, 0.1);
 }
 
-p-dialog .p-dialog-content {
-  line-height: 1.5;
-}
-
-.publication-detail {
-  padding: 1.5rem 2rem;
-
-  h3 {
-    font-size: 1.75rem;
-    text-align: center;
-    margin-bottom: 1rem;
-    color: #2a2a2a;
-  }
-
-  .authors {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.1rem;
-
-    h2 {
-      font-size: 1rem;
-      font-weight: 500;
-      background: #f0f0f0;
-      padding: 0.4rem 0.8rem;
-      border-radius: 0.25rem;
-      color: #333;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-  }
-
-  .group-top{
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-    p {
-      font-size: 1rem;
-      font-weight: 500;
-      background: #f0f0f0;
-      padding: 0.4rem 0.8rem;
-      border-radius: 0.25rem;
-      color: #333;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-  }
-  
-  .group-bot {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: auto auto;
-  gap: 1rem;
-  margin-bottom: 1rem;
-
-  strong {
-    grid-row: 1;
-    color: #222;
-  }
-
-  p {
-    grid-row: 2;
-    margin: 0;
-    line-height: 1.4;
-  }
-}
-
-  .abstract {
-    margin-top: 1.5rem;       
-
-    strong {
-      display: block;
-      margin-bottom: 0.5rem;  
-      font-size: 1rem;
-      color: #222;
-    }
-
-    p {
-      margin: 0;
-      padding-left: 1rem;
-      text-align: justify;
-      line-height: 1.6;
-      color: #444;
-    }
-  }
-}
-
 .dialog-actions {
   margin-top: 2rem;
   display: flex;
@@ -212,3 +126,135 @@ p-dialog .p-dialog-content {
   gap: 0.75rem;
 }
 
+:host ::ng-deep .p-dialog .p-dialog-header {
+  padding: 0rem !important;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+    padding: 0rem 1rem 1rem 1rem !important;
+}
+
+.publication-detail {
+  padding-bottom: 1.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.publication-detail h3 {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.publication-detail .authors {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.publication-detail .authors h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.publication-detail .group-top {
+  display: flex;
+  justify-content: center; /* zarovnanie do stredu */
+  flex-wrap: wrap;
+  gap: 2rem; /* väčší rozostup medzi položkami */
+  margin-bottom: 1.5rem;
+  text-align: center; /* centrovanie textu */
+}
+
+.publication-detail .group-top p {
+  margin: 0;
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.publication-detail .group-bot {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 rovnaké stĺpce */
+  text-align: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* zrušíme marginy medzi p */
+.publication-detail .group-bot p {
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* stackovanie názvu a hodnoty */
+}
+
+.publication-detail .group-bot p strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.publication-detail .abstract {
+  margin-top: 1.5rem;
+}
+
+.publication-detail .abstract p {
+  margin-top: 0.5rem;
+  line-height: 1.6;
+  margin-left: 1rem;
+}
+
+.p-confirm-dialog {
+  font-family: 'Lato', sans-serif;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+::ng-deep .p-dialog.p-confirmdialog{
+  font-family: $font-primary;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+::ng-deep .p-confirmdialog-accept-button {
+  background: #fdf3f3 !important;
+  border: 1px solid #e7c7c7 !important;
+  color: #a33434 !important;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  position: relative;
+}
+
+::ng-deep .p-confirmdialog-accept-button:hover {
+  background: #fbe1e1 !important;
+  border-color: #d14848 !important;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  color: #a33434 !important;
+  transform: translateY(-2px);
+}
+
+::ng-deep .p-confirmdialog-reject-button {
+  background: #f3f9fb !important;
+  border: 1px solid #c4e4e9 !important;
+  color: #2d6e71 !important;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  position: relative;
+}
+
+::ng-deep .p-confirmdialog-reject-button:hover {
+  background: #e6f3f5 !important;
+  border-color: #b4dfe5 !important;
+  color: #2d6e71 !important;
+  transform: translateY(-2px);
+}

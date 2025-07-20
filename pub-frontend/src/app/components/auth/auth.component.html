@@ -1,0 +1,98 @@
+<div class="auth-buttons">
+  <div class="auth-buttons">
+  <button class="custom-button" *ngIf="!auth.isLoggedIn()" pButton type="button" label="Prihlásiť sa" (click)="openLogin()"></button>
+  <button class="custom-button" *ngIf="!auth.isLoggedIn()" pButton type="button" label="Registrácia" (click)="openRegister()"></button>
+  <span *ngIf="auth.isLoggedIn()"> {{ currentUserFullName }}</span>
+  <button class="custom-button" *ngIf="auth.isLoggedIn()" pButton type="button" label="Odhlásiť sa" [routerLink]="['/']" (click)="logout()"></button>
+</div>
+</div>
+
+<p-dialog header="Prihlásenie"
+          [(visible)]="showLoginDialog"
+          [modal]="true" [closable]="true">
+  <form [formGroup]="loginForm" class="p-fluid">
+    <div class="p-field">
+      <p-floatlabel variant="on">
+        <label>Nickname</label>
+        <input id="loginNickname"
+              type="text"
+              pInputText
+              formControlName="nickname" />
+      </p-floatlabel>
+    </div>
+    <div class="p-field">
+      <p-floatlabel variant="on">
+        <label>Heslo</label>
+        <input id="loginPassword"
+              type="password"
+              pInputText
+              formControlName="password" />
+      </p-floatlabel>
+    </div>
+    <p-message *ngIf="errorMsg && showLoginDialog"
+               severity="error"
+               text="{{ errorMsg }}">
+    </p-message>
+    <button pButton
+            type="button"
+            label="Prihlásiť sa"
+            class="custom-button-white"
+            (click)="onLogin()"
+            [disabled]="loginForm.invalid">
+    </button>
+  </form>
+</p-dialog>
+
+<p-dialog header="Registrácia"
+          [(visible)]="showRegisterDialog"
+          [modal]="true" [closable]="true">
+  <form [formGroup]="registerForm" class="p-fluid">
+    <div class="p-field">
+      <p-floatlabel variant="on">
+        <label>Nickname</label>
+        <input id="regNickname"
+              type="text"
+              pInputText
+              formControlName="nickname" />
+      </p-floatlabel>
+    </div>
+    <div class="p-field">
+      <p-floatlabel variant="on">
+        <label>Meno</label>
+        <input id="regFirstName"
+              type="text"
+              pInputText
+              formControlName="firstName" />
+      </p-floatlabel>
+    </div>
+    <div class="p-field">
+      <p-floatlabel variant="on">
+        <label>Priezvisko</label>
+        <input id="regLastName"
+              type="text"
+              pInputText
+              formControlName="lastName" />
+      </p-floatlabel>
+    </div>
+    <div class="p-field">
+      <p-floatlabel variant="on">
+        <label>Heslo</label>
+        <input id="regPassword"
+              type="password"
+              pInputText
+              formControlName="password" />
+      </p-floatlabel>
+    </div>
+    <p-message *ngIf="errorMsg && showRegisterDialog"
+               severity="error"
+               text="{{ errorMsg }}">
+    </p-message>
+    <button pButton
+            type="button"
+            label="Registrovať"
+            class="custom-button-white"
+            (click)="onRegister()"
+            [disabled]="registerForm.invalid">
+    </button>
+  </form>
+</p-dialog>

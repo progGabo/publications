@@ -17,33 +17,35 @@ public class PublicationSpecificDTO implements Serializable {
 
     private Long id;
 
-    @NotNull(message = "title is mandatory")
+    @NotEmpty
     private String title;
 
-    @NotNull
+    @NotEmpty
     @PastOrPresent
     private LocalDate publicationDate;
 
+    @NotEmpty
     private String isbnIssn;
 
+    @NotEmpty
     private String edition;
 
-    @NotNull
+    @NotEmpty
     private String abstractText;
 
-    @NotNull
+    @NotEmpty
     private Integer pageCount;
 
-    @NotNull
+    @NotEmpty
     private Long categoryId;
 
-    @NotNull
+    @NotEmpty
     private Long typeId;
 
-    @NotNull
+    @NotEmpty
     private Long publisherId;
 
-    @NotNull
+    @NotEmpty
     private Long languageId;
 
     @NotEmpty

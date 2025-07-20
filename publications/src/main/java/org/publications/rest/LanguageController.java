@@ -1,5 +1,6 @@
 package org.publications.rest;
 
+import jakarta.validation.Valid;
 import org.publications.service.LanguageService;
 import org.publications.service.dto.LanguageDTO;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ public class LanguageController {
     }
 
     @PostMapping
-    public ResponseEntity<LanguageDTO> createLanguage(@RequestBody LanguageDTO languageRequest) {
+    public ResponseEntity<LanguageDTO> createLanguage(@Valid @RequestBody LanguageDTO languageRequest) {
         log.info("REST request to save Language : {}", languageRequest);
         LanguageDTO languageDTO = languageService.save(languageRequest);
         return ResponseEntity.ok(languageDTO);

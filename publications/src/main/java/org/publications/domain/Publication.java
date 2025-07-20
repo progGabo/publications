@@ -20,19 +20,19 @@ public class Publication {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "publication_date")
+    @Column(name = "publication_date", nullable = false)
     private LocalDate publicationDate;
 
-    @Column(name = "isbn_issn", unique = true)
+    @Column(name = "isbn_issn", unique = true, nullable = false)
     private String isbnIssn;
 
     @Column(name = "edition", nullable = false)
     private String edition;
 
-    @Column(name = "abstract", length = 1000)
+    @Column(name = "abstract", nullable = false)
     private String abstractText;
 
-    @Column(name = "page_count")
+    @Column(name = "page_count",nullable = false)
     private Integer pageCount;
 
     @ManyToOne

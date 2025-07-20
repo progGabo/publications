@@ -2,11 +2,13 @@
   <form [formGroup]="publicationForm" (ngSubmit)="onSubmit()">
     <div class="form-group-1">
       <div class="authors-control">
-        <p-button type="button" (click)="addAuthor()">Pridať autora</p-button>
-        <p-button
+        <button pButton type="button" class="custom-button-white" (click)="addAuthor()">Pridať autora</button>
+        <button
           *ngIf="authorIds.length > 1"
+          pButton
           type="button"
-          (click)="removeAuthor(authorIds.length - 1)">Odstrániť autora</p-button>
+          class="custom-button-white"
+          (click)="removeAuthor(authorIds.length - 1)">Odstrániť autora</button>
       </div>
       <div formArrayName="authorIds">
         <div
@@ -15,11 +17,11 @@
           [formGroupName]="i"
         >
           <p-floatlabel>
-            <label>Meno autora</label>
-            <input type="text" pInputText formControlName="firstName" />
+            <label>Meno autora*</label>
+            <input type="text" pInputText formControlName="firstName"  />
           </p-floatlabel>
           <p-floatlabel>
-            <label>Priezvisko autora</label>
+            <label>Priezvisko autora*</label>
             <input type="text" pInputText formControlName="lastName" />
           </p-floatlabel>
         </div>
@@ -27,20 +29,20 @@
 
       <div class="info-row">
         <p-floatlabel>
-          <label>Názov</label>
+          <label>Názov*</label>
           <input type="text" pInputText formControlName="title" />
         </p-floatlabel>
 
         <p-floatlabel>
           <p-datepicker formControlName="publicationDate" dateFormat="dd.mm.yy" showIcon="true" iconDisplay="input" showOnFocus="true"></p-datepicker>
-          <label>Dátum vydania</label>
+          <label>Dátum vydania*</label>
         </p-floatlabel>
       </div>
 
       <div class="page-edition">
         <div class="isbn-group">
           <p-floatlabel>
-            <label>ISBN/ISSN</label>
+            <label>ISBN/ISSN*</label>
             <input
               type="text"
               pInputText
@@ -56,72 +58,72 @@
         </div>
 
         <p-floatlabel>
-          <label>Počet strán</label>
+          <label>Počet strán*</label>
           <input type="number" pInputText formControlName="pageCount" />
         </p-floatlabel>
 
         <p-floatlabel>
-          <label>Edícia</label>
+          <label>Edícia*</label>
           <input type="text" pInputText formControlName="edition" />
         </p-floatlabel>
       </div>
     </div>
 
     <div class="form-group-2">
-      <p-floatlabel>
-        <textarea formControlName="abstractText" pTextarea rows="12" cols="80" style="resize: none" class="h-full"></textarea>
-        <label>Abstrakt</label>
-      </p-floatlabel>
+        <p-floatlabel>
+          <textarea pTextarea formControlName="abstractText" rows="12" cols="103" style="resize: none" class="h-full"></textarea>
+          <label>Abstrakt*</label>
+        </p-floatlabel>
 
       <div class="select-row">
         <div class="select-group">
           <p-floatlabel>
             <p-select [options]="publisher" formControlName="publisherId" optionLabel="name" placeholder="Vyber vydavateľa"></p-select>
-            <button pButton type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Publisher)"></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Publisher)"></button>
           </p-floatlabel>
           <div *ngIf="showNewInput[EntityType.Publisher]">
             <input type="text" pInputText [formControl]="newControls[EntityType.Publisher]" placeholder="Nový vydavateľ" />
-            <button pButton type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Publisher)"></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Publisher)"></button>
           </div>
         </div>
 
         <div class="select-group">
           <p-floatlabel>
             <p-select [options]="category" formControlName="categoryId" optionLabel="name" placeholder="Vyber kategóriu"></p-select>
-            <button pButton type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Category)" ></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Category)" ></button>
           </p-floatlabel>
           <div *ngIf="showNewInput[EntityType.Category]">
             <input type="text" pInputText [formControl]="newControls[EntityType.Category]" placeholder="Nová kategória" />
-            <button pButton type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Category)"></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Category)"></button>
           </div>
         </div>
 
         <div class="select-group">
           <p-floatlabel>
             <p-select [options]="type" formControlName="typeId" optionLabel="name" placeholder="Vyber typ publikácie"></p-select>
-            <button pButton type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Type)" ></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Type)" ></button>
           </p-floatlabel>
           <div *ngIf="showNewInput[EntityType.Type]">
             <input type="text" pInputText [formControl]="newControls[EntityType.Type]" placeholder="Nový typ" />
-            <button pButton type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Type)"></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Type)"></button>
           </div>
         </div>
 
         <div class="select-group">
           <p-floatlabel>
             <p-select [options]="language" formControlName="languageId" optionLabel="name" placeholder="Vyber jazyk"></p-select>
-            <button pButton type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Language)" ></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-plus" (click)="toggleNewInput(EntityType.Language)" ></button>
           </p-floatlabel>
           <div *ngIf="showNewInput[EntityType.Language]">
             <input type="text" pInputText [formControl]="newControls[EntityType.Language]" placeholder="Názov jazyka" />
-            <button pButton type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Language)"></button>
+            <button pButton class="custom-button-white" type="button" icon="pi pi-save" (click)="addNewEntity(EntityType.Language)"></button>
           </div>
         </div>
       </div>
 
-      <p-button type="submit" [disabled]="publicationForm.invalid">
+      <button pButton class="custom-button-white" type="submit">
         {{ isEditMode ? 'Upraviť' : 'Odoslať' }}
-      </p-button>
+      </button>
       <p-dialog 
         header="{{ dialogHeader }}" 
         [(visible)]="showResultDialog" 
@@ -132,23 +134,21 @@
         <p>{{ dialogHeader }} úspešne.</p>
 
         <ng-template pTemplate="footer">
-          <!-- Pri create móde ponúkneme "Pridať ďalšiu" aj "Domov" -->
           <button 
             *ngIf="!isEditDialog" 
             pButton 
             label="Pridať ďalšiu" 
             icon="pi pi-plus" 
             (click)="addAnother()"
-            class="p-button-outlined"
+            class="custom-button-white"
           ></button>
 
-          <!-- Vždy tlačidlo Domov -->
           <button 
             pButton 
             label="Domov" 
             icon="pi pi-home" 
             (click)="goHome()"
-            class="p-button-outlined"
+            class="custom-button-white"
           ></button>
         </ng-template>
       </p-dialog>
@@ -166,10 +166,11 @@
             label="OK"
             icon="pi pi-check"
             (click)="showErrorDialog = false"
-            class="p-button-outlined"
+            class="custom-button-white"
           ></button>
         </ng-template>
       </p-dialog>
     </div>
   </form>
 </div>
+<p-toast></p-toast>

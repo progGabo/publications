@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -47,7 +48,8 @@ public class PublicationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PublicationSpecificDTO> updatePublication(@PathVariable Long id,@RequestBody PublicationSpecificDTO updated) {
+    @PreAuthorize("@publicationServiceImpl.isOwner(#id, authentication)")
+    public ResponseEntity<PublicationSpecificDTO> updatePublication(@PathVariable Long id,@Valid @RequestBody PublicationSpecificDTO updated) {
         log.info("REST request to update Publication : {}", updated);
 
         Optional<PublicationDTO> publicationOpt = publicationService.getById(id);
@@ -66,6 +68,7 @@ public class PublicationController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("@publicationServiceImpl.isOwner(#id, authentication)")
     public ResponseEntity<Void> deletePublication(@PathVariable Long id) {
         log.info("REST request to delete Publication : {}", id);
         Optional<PublicationDTO> publicationOpt = publicationService.getById(id);

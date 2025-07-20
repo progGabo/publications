@@ -8,12 +8,14 @@ import { EntityType } from '../../models/entity-type';
 import { Option } from '../../models/option';
 import { AuthorInPublication } from '../../models/author-in-publication';
 import { DropdownDataService } from '../../services/dropdown-data.service';
+import { AuthService } from '../../services/auth.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   standalone: false,
   selector: 'publication-create',
   templateUrl: './publication-create.component.html',
-  styleUrls:['./publication-create.component.scss'],
+  styleUrls:['./publication-create.component.scss', '../../../styles.scss'],
 })
 
 export class PublicationCreate implements OnInit {
@@ -41,6 +43,9 @@ export class PublicationCreate implements OnInit {
   showErrorDialog = false;
   errorDialogHeader = '';
   errorDialogMessage = '';
+  
+  currentUserFirstName: string ;
+  currentUserLastName: string;
 
   newControls: Record<string, any> = {
     publisher: new FormControl('', Validators.required),
@@ -52,33 +57,46 @@ export class PublicationCreate implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private messageService: MessageService,
     private cdRef: ChangeDetectorRef,
     private route: ActivatedRoute, 
     private publicationService: PublicationService,
-    private dropdownService: DropdownDataService
+    private dropdownService: DropdownDataService,
+    public auth: AuthService
   ) {
+    this.currentUserFirstName = this.auth.currentUserFirstName;
+    this.currentUserLastName = this.auth.currentUserLastName;
+
     this.publicationForm = this.fb.group({
       title: ['', Validators.required],
       publicationDate: ['', Validators.required], 
-      isbnIssn: ['', [this.ValidatorIsbnIssn]], 
-      edition: [''],
+      isbnIssn: ['', [Validators.required, this.ValidatorIsbnIssn]], 
+      edition: ['', Validators.required],
       abstractText: ['', Validators.required],
       pageCount: [null, Validators.required],
       publisherId: [null, Validators.required],
       categoryId: [null, Validators.required],
       typeId: [null, Validators.required],
       languageId: [null, Validators.required],
-      authorIds: this.fb.array([])
+      authorIds: this.fb.array([
+        this.fb.group({
+          firstName: [ this.currentUserFirstName, Validators.required ],
+          lastName:  [ this.currentUserLastName,  Validators.required ],
+        })
+      ])
     });
   }
 
   ngOnInit(): void {
+    this.auth.loadCurrentUser().subscribe(user => {
+      this.currentUserFirstName = this.auth.currentUserFirstName;
+      this.currentUserLastName  = this.auth.currentUserLastName;
+    });
     const id = this.route.snapshot.paramMap.get('id');
     if (id !== null) {
       this.isEditMode = true;
     } else {
       this.isEditMode = false;
-      this.addAuthor();
     }
 
     this.loadDropdownData()
@@ -86,7 +104,7 @@ export class PublicationCreate implements OnInit {
     if (this.isEditMode && id) {
     this.publicationService.getById(Number(id))
       .subscribe({
-        next: (data) => {
+        next: (data: Publication) => {
           this.publicationToEdit = data;
           this.patchForm(data);
         }
@@ -98,11 +116,11 @@ export class PublicationCreate implements OnInit {
     return this.publicationForm.get('authorIds') as FormArray;
   }
 
-  addAuthor() {
+  addAuthor(firstName?: string, lastname?: string) {
     this.authorIds.push(
       this.fb.group({
-        firstName: ['', Validators.required],
-        lastName: ['', Validators.required]
+        firstName: [firstName, Validators.required],
+        lastName: [lastname, Validators.required]
       })
     );
   }
@@ -132,12 +150,10 @@ export class PublicationCreate implements OnInit {
       languageId: selectedLanguage ?? null
     });
 
-    const sortedAuthors = (pub.authors ?? []).sort((a, b) => a.authorOrder - b.authorOrder);
-
     let authorArray: FormArray;
 
-    if (sortedAuthors.length > 0) {
-      const groups = sortedAuthors.map(a =>
+    if (pub.authors.length > 0) {
+      const groups = pub.authors.map(a =>
         this.fb.group({
           firstName: [a.firstName, Validators.required],
           lastName:  [a.lastName,  Validators.required]
@@ -175,7 +191,7 @@ export class PublicationCreate implements OnInit {
     this.showNewInput[entity] = !this.showNewInput[entity];
   }
 
-  addNewEntity(entity: EntityType) {//rozdelit vytvaranie payloadu a request
+  addNewEntity(entity: EntityType) {
     const control = this.newControls[entity];
     let payload: Option;
 
@@ -188,10 +204,10 @@ export class PublicationCreate implements OnInit {
 
     create.subscribe({
       next: newOption => {
-        this[entity].push(newOption);
-        this.publicationForm.get(`${entity}Id`)!.setValue(newOption);
+        this.loadDropdownData();
         control.reset();
         this.toggleNewInput(entity);
+        this.cdRef.detectChanges();
       },
       error: (err) => console.error(`Chyba pri vytváraní ${entity}:`, err)
     });
@@ -206,8 +222,14 @@ export class PublicationCreate implements OnInit {
       ? null : { invalidIsbnIssn: true };
   }
 
-  onSubmit(): void {
+  onSubmit(): void {;
     if (this.publicationForm.invalid) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Chýbajú údaje',
+        detail: 'Vyplň prosím všetky povinné polia.',
+        life: 3500
+      });
       return;
     }
 
@@ -254,9 +276,10 @@ export class PublicationCreate implements OnInit {
         ? 'Publikácia upravená'
         : 'Publikácia vytvorená';
       this.showResultDialog = true;
-      this.cdRef.detectChanges();
+      //this.cdRef.detectChanges();
     },
     error: (err: HttpErrorResponse) => {
+      console.log(err);
       let header = this.isEditMode
         ? 'Chyba pri úprave'
         : 'Chyba pri vytváraní';
@@ -264,7 +287,7 @@ export class PublicationCreate implements OnInit {
         ? 'Nepodarilo sa upraviť publikáciu. Skúste to prosím neskôr.'
         : 'Nepodarilo sa vytvoriť publikáciu. Skúste to prosím neskôr.';
 
-      if (err.status === 409 && err.error?.error === 'Duplicate ISBN') {
+      if (err.status === 409 && err.error.message === 'Duplicate ISBN') {
         header = 'Duplicitné ISBN';
         message = 'Zadané ISBN/ISSN už existuje.';
       }
@@ -285,10 +308,11 @@ export class PublicationCreate implements OnInit {
   addAnother() {
     this.showResultDialog = false;
     this.publicationForm.reset();
+
     while (this.authorIds.length) {
       this.authorIds.removeAt(0);
     }
-    this.addAuthor();
+    this.addAuthor(this.currentUserFirstName, this.currentUserLastName);
     this.isEditMode = false;
   }
 }
